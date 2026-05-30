@@ -1,23 +1,39 @@
 # AI Image Detection
 
-This project detects whether an image is real or AI-generated using statistical image analysis and machine learning. It builds on my HW5 image forensics work, where I compared image pairs, RGB histograms, blurred pixel differences, and simple rule-based detection on a small real-vs-AI shoe image set.
-
-For the final project, the goal is to expand this into a stronger detection pipeline using the CIFAKE dataset, which contains 60,000 real images and 60,000 AI-generated images.
+This project detects whether an image is real or AI-generated using statistical image analysis 
+and machine learning. It builds on my HW5 image forensics work, where I compared image pairs, 
+RGB histograms, blurred pixel differences, and simple rule-based detection on a 
+small real-vs-AI shoe image set.
+For the final project, I expanded this into a stronger detection pipeline using the CIFAKE dataset,
+which contains 60,000 real images and 60,000 AI-generated images. 
+Due to GitHub size limitations, the CIFAKE dataset is not included.
+Download it from Kaggle and place it in the data/ directory 
+before running the training scripts.
+For CIFAKE specifically, the images are already standardized, 
+usually 32×32 RGB images, since CIFAKE is based on CIFAR-style images.
+Preprocessing images to the same size and format is important because the classifier should learn
+differences between real and AI-generated images, not differences caused by image dimensions, 
+file types, or color formats.
 
 ## Project Goal
 
 Can we detect whether an image is real or AI-generated using computational image analysis?
 
-This matters because AI-generated images are increasingly realistic and can be used in misinformation, security problems, and digital forensics. Instead of relying only on human judgment, this project extracts measurable image features and trains classifiers to separate real images from AI-generated ones.
+This matters because AI-generated images are increasingly realistic and can be used in
+misinformation, security problems, and digital forensics. 
+Instead of relying only on human judgment, this project extracts measurable image features 
+and trains classifiers to separate real images from AI-generated ones.
 
 ## Detection Pipeline
 
-1. Collect real and AI-generated images
-2. Preprocess images to the same size and format
+1. Collect real and AI-generated images (X)
+2. Preprocess images to the same size and format (X)
 3. Extract statistical image features
 4. Train machine learning classifiers
 5. Evaluate accuracy, precision, recall, and runtime
 6. Test robustness to resizing and compression
+
+(an X means I have completed it for my own notes)
 
 ## Features Extracted
 
