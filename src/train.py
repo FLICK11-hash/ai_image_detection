@@ -17,10 +17,12 @@ from sklearn.ensemble import ExtraTreesClassifier, HistGradientBoostingClassifie
 
 
 def build_dataset(data_dir, limit=None):
+    # Build a balanced dataset by extracting features from REAL and FAKE images
     rows, labels = [], []
     for label_name, label in [("REAL", 0), ("FAKE", 1)]:
         files = list((Path(data_dir) / label_name).glob("*"))
         random.seed(50)
+        # Randomize image order to avoid bias from file ordering in the dataset
         random.shuffle(files)
 
         if limit:
@@ -35,10 +37,12 @@ def build_dataset(data_dir, limit=None):
 
 
 def evaluate_model(name, model, X_train, X_test, y_train, y_test):
+    # Train a model and evaluate its classification performance on unseen test data
     start = time.time()
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
 
+    # Generate a confusion matrix to visualize classification errors
     cm = confusion_matrix(y_test, preds)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["REAL", "FAKE"])
     disp.plot()
@@ -66,8 +70,10 @@ def main():
     X, y = build_dataset(args.data_dir, args.limit)
     X.to_csv("results/feature_matrix.csv", index=False)
 
+    # Split data into training and testing sets while preserving class balance
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
+    # Compare multiple machine learning models and hyperparameter settings
     models = {
     "Linear SVM C=10": Pipeline([
         ("scale", StandardScaler()),
@@ -112,6 +118,7 @@ def main():
     ),
 }
 
+    # Train every model, collect performance metrics, and save the results
     results = [evaluate_model(name, model, X_train, X_test, y_train, y_test) for name, model in models.items()]
 
     pd.DataFrame(results).to_csv("results/model_results.csv", index=False)

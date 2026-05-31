@@ -3,6 +3,7 @@ from skimage import io, color, transform, filters, feature, util
 
 
 def load_image(path, image_size=(64, 64)):
+    # Load an image, convert it to RGB if needed, and resize it to a standard size
     img = io.imread(path)
 
     if img.ndim == 2:
@@ -16,6 +17,7 @@ def load_image(path, image_size=(64, 64)):
 
 
 def rgb_histogram_features(img, bins=16):
+    # Extract RGB color histograms to capture color distribution patterns
     feats = []
     names = []
 
@@ -28,7 +30,8 @@ def rgb_histogram_features(img, bins=16):
 
 
 def intensity_features(img):
-    gray = color.rgb2gray(img)
+    # Compute brightness statistics that summarize overall image intensity
+    gray = color.rgb2gray(img)  
 
     feats = np.array([
         gray.mean(),
@@ -54,14 +57,15 @@ def intensity_features(img):
 
 
 def texture_features(img):
-    gray = color.rgb2gray(img)
+    gray = color.rgb2gray(img)      # Convert image to grayscale because texture analysis does not require color information
     gray_uint8 = (gray * 31).astype(np.uint8)
 
-    edges = filters.sobel(gray)
+    edges = filters.sobel(gray)     # Compute Sobel edge features to measure edge density and sharpness
 
-    lbp = feature.local_binary_pattern(gray_uint8, P=8, R=1, method="uniform")
+    lbp = feature.local_binary_pattern(gray_uint8, P=8, R=1, method="uniform")      # Compute Local Binary Pattern features to describe local texture patterns
     lbp_hist, _ = np.histogram(lbp, bins=10, range=(0, 10), density=True)
 
+    # Build a Gray-Level Co-occurrence Matrix (GLCM) to capture texture relationships between neighboring pixels
     glcm = feature.graycomatrix(
         gray_uint8,
         distances=[1, 2],
@@ -74,6 +78,7 @@ def texture_features(img):
     glcm_props = []
     glcm_names = []
 
+    # Extract standard GLCM texture metrics such as contrast, homogeneity, and correlation
     for prop in ["contrast", "dissimilarity", "homogeneity", "energy", "correlation", "ASM"]:
         vals = feature.graycoprops(glcm, prop).ravel()
         glcm_props.extend([vals.mean(), vals.std()])
@@ -95,6 +100,8 @@ def texture_features(img):
 
 
 def fft_features(img):
+    # Apply a Fast Fourier Transform (FFT) to analyze frequency-domain image characteristics
+
     gray = color.rgb2gray(img)
 
     spectrum = np.abs(np.fft.fftshift(np.fft.fft2(gray)))
@@ -107,7 +114,7 @@ def fft_features(img):
     radius = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
     max_radius = radius.max()
 
-    low_mask = radius <= max_radius * 0.20
+    low_mask = radius <= max_radius * 0.20      # Separate frequency information into low, medium, and high frequency regions
     mid_mask = (radius > max_radius * 0.20) & (radius <= max_radius * 0.50)
     high_mask = radius > max_radius * 0.50
 
@@ -143,6 +150,7 @@ def fft_features(img):
 
 
 def extract_features(path):
+    # Combine all extracted feature groups into a single feature vector for machine learning
     img = load_image(path)
 
     feature_parts = [
@@ -157,6 +165,7 @@ def extract_features(path):
 
 
 def get_feature_names():
+    # Generate human-readable feature names for feature importance analysis and visualization
     dummy = np.zeros((64, 64, 3), dtype=np.float32)
 
     feature_parts = [

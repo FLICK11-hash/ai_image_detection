@@ -12,9 +12,11 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 
 
 class SimpleCNN(nn.Module):
+    # Define a simple convolutional neural network for classifying images as REAL or FAKE
     def __init__(self):
         super().__init__()
 
+        # Extract increasingly complex image patterns using convolution and pooling layers
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, 3, padding=1),
             nn.ReLU(),
@@ -29,6 +31,7 @@ class SimpleCNN(nn.Module):
             nn.MaxPool2d(2),
         )
 
+        # Convert learned image features into a final REAL vs FAKE prediction
         self.classifier = nn.Sequential(
             nn.Flatten(),
             nn.Linear(128 * 8 * 8, 128),
@@ -43,6 +46,7 @@ class SimpleCNN(nn.Module):
 
 
 def limit_dataset(dataset, limit):
+    # Create a balanced subset of REAL and FAKE images to reduce training time
     if limit is None:
         return dataset
 
@@ -62,6 +66,7 @@ def limit_dataset(dataset, limit):
 
 
 def evaluate(model, loader, device):
+    # Evaluate CNN performance using accuracy, precision, recall, and F1 score
     model.eval()
     all_preds = []
     all_labels = []
@@ -95,6 +100,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
+    # Resize all images to a consistent size and convert them into tensors
     transform = transforms.Compose([
         transforms.Resize((64, 64)),
         transforms.ToTensor(),
@@ -116,6 +122,7 @@ def main():
 
     start = time.time()
 
+    # Train the CNN by repeatedly updating model weights using backpropagation
     for epoch in range(epochs):
         model.train()
         total_loss = 0
