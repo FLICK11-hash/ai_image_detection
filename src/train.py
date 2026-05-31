@@ -6,12 +6,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from features import extract_features, get_feature_names
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import random
+from sklearn.svm import SVC
+from sklearn.ensemble import ExtraTreesClassifier, HistGradientBoostingClassifier
 
 
 
@@ -68,36 +69,50 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
     models = {
-        "Logistic Regression": Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression(max_iter=1000))]),
-        "Linear SVM": Pipeline([("scale", StandardScaler()), ("clf", LinearSVC(max_iter=5000))]),
-        "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42),
-    }
+    "Linear SVM C=10": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", LinearSVC(C=10, max_iter=10000))
+    ]),
+
+    "RBF SVM C=1 gamma=scale": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", SVC(kernel="rbf", C=1, gamma="scale"))
+    ]),
+
+    "RBF SVM C=1 gamma=0.01": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", SVC(kernel="rbf", C=1, gamma=0.01))
+    ]),
+
+    "RBF SVM C=1 gamma=0.05": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", SVC(kernel="rbf", C=1, gamma=0.05))
+    ]),
+
+    "RBF SVM C=2 gamma=scale": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", SVC(kernel="rbf", C=2, gamma="scale"))
+    ]),
+
+    "Logistic Regression C=10": Pipeline([
+        ("scale", StandardScaler()),
+        ("clf", LogisticRegression(C=10, max_iter=2000))
+    ]),
+    "Extra Trees": ExtraTreesClassifier(
+        n_estimators=300,
+        max_features="sqrt",
+        random_state=42,
+        n_jobs=-1
+    ),
+
+    "Hist Gradient Boosting": HistGradientBoostingClassifier(
+        max_iter=200,
+        learning_rate=0.05,
+        random_state=42
+    ),
+}
 
     results = [evaluate_model(name, model, X_train, X_test, y_train, y_test) for name, model in models.items()]
-
-    rf = models["Random Forest"]
-    importances = rf.feature_importances_
-
-    feature_names = get_feature_names()
-
-    importance_df = pd.DataFrame({
-        "feature_index": range(len(importances)),
-        "feature_name": feature_names,
-        "importance": importances
-    }).sort_values("importance", ascending=False)
-
-    importance_df.to_csv("results/random_forest_feature_importances.csv", index=False)
-
-    plt.figure(figsize=(10, 6))
-    plt.barh(importance_df["feature_name"].head(20), importance_df["importance"].head(20))
-    plt.xlabel("Importance")
-    plt.ylabel("Feature")
-    plt.gca().invert_yaxis()
-    plt.ylabel("Importance")
-    plt.title("Top 20 Random Forest Feature Importances")
-    plt.tight_layout()
-    plt.savefig("results/random_forest_feature_importances.png")
-    plt.close()
 
     pd.DataFrame(results).to_csv("results/model_results.csv", index=False)
     print(pd.DataFrame(results))
