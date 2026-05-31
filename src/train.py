@@ -8,13 +8,20 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from features import extract_features
+from features import extract_features, get_feature_names
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import random
+
 
 
 def build_dataset(data_dir, limit=None):
     rows, labels = [], []
-    for label_name, label in [("real", 0), ("fake", 1)]:
+    for label_name, label in [("REAL", 0), ("FAKE", 1)]:
         files = list((Path(data_dir) / label_name).glob("*"))
+        random.seed(50)
+        random.shuffle(files)
+
         if limit:
             files = files[: limit // 2]
         for path in files:
@@ -30,6 +37,14 @@ def evaluate_model(name, model, X_train, X_test, y_train, y_test):
     start = time.time()
     model.fit(X_train, y_train)
     preds = model.predict(X_test)
+
+    cm = confusion_matrix(y_test, preds)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["REAL", "FAKE"])
+    disp.plot()
+    plt.title(f"{name} Confusion Matrix")
+    plt.savefig(f"results/{name.replace(' ', '_').lower()}_confusion_matrix.png")
+    plt.close()
+
     return {
         "model": name,
         "accuracy": accuracy_score(y_test, preds),
@@ -59,9 +74,33 @@ def main():
     }
 
     results = [evaluate_model(name, model, X_train, X_test, y_train, y_test) for name, model in models.items()]
+
+    rf = models["Random Forest"]
+    importances = rf.feature_importances_
+
+    feature_names = get_feature_names()
+
+    importance_df = pd.DataFrame({
+        "feature_index": range(len(importances)),
+        "feature_name": feature_names,
+        "importance": importances
+    }).sort_values("importance", ascending=False)
+
+    importance_df.to_csv("results/random_forest_feature_importances.csv", index=False)
+
+    plt.figure(figsize=(10, 6))
+    plt.barh(importance_df["feature_name"].head(20), importance_df["importance"].head(20))
+    plt.xlabel("Importance")
+    plt.ylabel("Feature")
+    plt.gca().invert_yaxis()
+    plt.ylabel("Importance")
+    plt.title("Top 20 Random Forest Feature Importances")
+    plt.tight_layout()
+    plt.savefig("results/random_forest_feature_importances.png")
+    plt.close()
+
     pd.DataFrame(results).to_csv("results/model_results.csv", index=False)
     print(pd.DataFrame(results))
-
 
 if __name__ == "__main__":
     main()

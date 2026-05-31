@@ -28,7 +28,7 @@ and trains classifiers to separate real images from AI-generated ones.
 
 1. Collect real and AI-generated images (X)
 2. Preprocess images to the same size and format (X)
-3. Extract statistical image features
+3. Extract statistical image features (X)
 4. Train machine learning classifiers
 5. Evaluate accuracy, precision, recall, and runtime
 6. Test robustness to resizing and compression
