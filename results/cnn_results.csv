@@ -1,0 +1,2 @@
+accuracy,precision,recall,f1,model,runtime_seconds
+0.906,0.9202898550724637,0.889,0.9043743641912513,Simple CNN,425.19953751564026
